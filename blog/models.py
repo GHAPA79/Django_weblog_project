@@ -1,5 +1,6 @@
 from django.db import models
 from django.shortcuts import reverse
+from django.contrib.auth import get_user_model
 
 
 class Post(models.Model):

@@ -3,6 +3,8 @@
 # from django.contrib.auth.models import User
 from django.views import generic
 from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import UserPassesTestMixin
 
 from .models import Post
 from .forms import PostForm
@@ -19,26 +21,26 @@ class PostsListView(generic.ListView):
         return Post.objects.filter(status='pub').order_by('-date_modified')
 
 
-class PostDetailsView(generic.DetailView):
+class PostDetailsView(LoginRequiredMixin, generic.DetailView):
     model = Post
     template_name = 'blog/post_details.html'
     context_object_name = 'post'
 
 
-class PostCreateView(generic.CreateView):
+class PostCreateView(LoginRequiredMixin, generic.CreateView):
     form_class = PostForm
     template_name = 'blog/create_post.html'
     context_object_name = 'form'
 
 
-class PostUpdateView(generic.UpdateView):
+class PostUpdateView(LoginRequiredMixin, generic.UpdateView):
     model = Post
     template_name = 'blog/create_post.html'
     form_class = PostForm
     context_object_name = 'form'
 
 
-class PostDeleteView(generic.DeleteView):
+class PostDeleteView(LoginRequiredMixin, generic.DeleteView):
     model = Post
     template_name = 'blog/delete_post.html'
     success_url = reverse_lazy('posts_list')
