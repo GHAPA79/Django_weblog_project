@@ -21,3 +21,11 @@ class Post(models.Model):
 
     def get_absolute_url(self):  # Baraye redirect() kardan dar views estefade mishe.
         return reverse('post_details', args=[self.id])
+
+
+class Comment(models.Model):
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    text = models.TextField()
+    datetime_created = models.DateTimeField(auto_now_add=True)
+
