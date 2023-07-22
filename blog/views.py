@@ -1,13 +1,13 @@
-# from django.shortcuts import render, redirect
-# from django.shortcuts import get_object_or_404
 # from django.contrib.auth.models import User
+from django.shortcuts import render
 from django.views import generic
 from django.urls import reverse_lazy
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.mixins import UserPassesTestMixin
+from django.contrib.auth.decorators import login_required
 
 from .models import Post
-from .forms import PostForm
+from .forms import PostForm, CommentForm
 
 
 # Class-Based Views:
@@ -21,10 +21,34 @@ class PostsListView(generic.ListView):
         return Post.objects.filter(status='pub').order_by('-date_modified')
 
 
-class PostDetailsView(LoginRequiredMixin, generic.DetailView):
-    model = Post
-    template_name = 'blog/post_details.html'
-    context_object_name = 'post'
+# class PostDetailsView(LoginRequiredMixin, generic.DetailView):
+#     model = Post
+#     template_name = 'blog/post_details.html'
+#     context_object_name = 'post'
+
+@login_required
+def post_detail_view(request, pk):
+    # get detail post:
+    post = get_object_or_404(Post, pk=pk)
+    # get post comments:
+    post_comments = post.comments.all().order_by('-datetime_created')
+
+    if request.method == 'POST':
+        comment_form = CommentForm(request.POST)
+        if comment_form.is_valid():
+            new_comment = comment_form.save(commit=False)
+            new_comment.post = post
+            new_comment.user = request.user
+            new_comment.save()
+            comment_form = CommentForm()
+    else:
+        comment_form = CommentForm()
+
+    return render(request, 'blog/post_details.html', context={
+        'post': post,
+        'post_comments': post_comments,
+        'comment_form': comment_form,
+    })
 
 
 class PostCreateView(LoginRequiredMixin, generic.CreateView):
@@ -45,7 +69,6 @@ class PostDeleteView(LoginRequiredMixin, generic.DeleteView):
     template_name = 'blog/delete_post.html'
     success_url = reverse_lazy('posts_list')
     context_object_name = 'post'
-
 
 # Functional Views:
 
